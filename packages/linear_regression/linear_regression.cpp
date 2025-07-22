@@ -29,4 +29,13 @@ std::pair<double, double> fit(const std::vector<double>& x, const std::vector<do
     return {a, b};
 };
 
+double predict(double a, double b, double x) {
+    return a * x + b;
+}
+
+double predict_x(double a, double b, double y) {
+    if (a == 0) throw std::invalid_argument("Slope a cannot be zero for inverse prediction.");
+    return (y - b) / a;
+}
+
 } // namespace linear_regression

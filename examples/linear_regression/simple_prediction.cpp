@@ -14,10 +14,16 @@ int main() {
 
     std::cout << "Fitted line: y = " << a << " * x + " << b << std::endl;
 
-    // Predict a value
     double x_pred = 6.0;
-    double y_pred = a * x_pred + b;
-    std::cout << "Prediction for x = " << x_pred << ": y = " << y_pred << std::endl;
+
+    // Predict using linear_regression::predict
+    double y_pred_func = linear_regression::predict(a, b, x_pred);
+    std::cout << "Prediction using predict(): x = " << x_pred << " y = " << y_pred_func << std::endl;
+
+    // Predict x for a given y using linear_regression::predict_x
+    double y_target = 7.0;
+    double x_pred_func = linear_regression::predict_x(a, b, y_target);
+    std::cout << "Prediction using predict_x() for y = " << y_target << ": x = " << x_pred_func << std::endl;
 
     return 0;
 }
