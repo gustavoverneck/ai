@@ -533,7 +533,6 @@ qrc_*.cpp
 ui_*.h
 *.qmlc
 *.jsc
-Makefile*
 *build-*
 *.qm
 *.prl
@@ -754,9 +753,6 @@ PublishScripts/
 *.nupkg
 # NuGet Symbol Packages
 *.snupkg
-# The packages folder can be ignored because of Package Restore
-**/[Pp]ackages/*
-# except build/, which is used as an MSBuild target.
 !**/[Pp]ackages/build/
 # Uncomment if necessary however generally it will be regenerated when needed
 #!**/[Pp]ackages/repositories.config
@@ -944,7 +940,6 @@ CMakeFiles
 CMakeScripts
 Testing
 Makefile
-cmake_install.cmake
 install_manifest.txt
 compile_commands.json
 CTestTestfile.cmake
