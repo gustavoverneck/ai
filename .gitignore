@@ -1039,14 +1039,3 @@ dkms.conf
 *.uf2
 # Raspberry Pi Pico disassembler file
 *.dis
-@locnnil
-locnnil commented on Feb 13, 2022 • 
-Really thanks! This gist helps a lot!
-I have some suggestions to make this even better!
-
-# Raspberry Pi Pico Object file
-*.uf2
-# Raspberry Pi Pico disassembler file
-*.dis
-# C/C++ binary extension file
-*.bin
