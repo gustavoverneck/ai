@@ -1,0 +1,291 @@
+# Makefile for C++ AI Projects (Cross-platform: Windows, Linux, macOS)
+
+# Detect operating system
+ifeq ($(OS),Windows_NT)
+	DETECTED_OS := Windows
+	MKDIR = if not exist "$1" mkdir "$1"
+	RMDIR = if exist "$1" rmdir /s /q "$1"
+	PATH_SEP = \\
+	EXE_EXT = .exe
+	NULLDEV = nul
+else
+	UNAME_S := $(shell uname -s)
+	ifeq ($(UNAME_S),Linux)
+		DETECTED_OS := Linux
+	endif
+	ifeq ($(UNAME_S),Darwin)
+		DETECTED_OS := macOS
+	endif
+	MKDIR = mkdir -p $1
+	RMDIR = rm -rf $1
+	PATH_SEP = /
+	EXE_EXT = 
+	NULLDEV = /dev/null
+endif
+
+# Compiler and flags
+CXX = g++
+CXXFLAGS = -std=c++17 -Wall -Wextra -O2 -g
+INCLUDES = -Iinclude
+LIBS = -lm
+
+# Directories (use forward slashes, make will handle conversion)
+SRC_DIR = src
+BUILD_DIR = build
+BIN_DIR = bin
+INCLUDE_DIR = include
+PACKAGES_DIR = packages
+EXAMPLES_DIR = examples
+
+# Main file
+MAIN_FILE = main.cpp
+
+# Source files (excluding main.cpp)
+PACKAGE_SOURCES = $(wildcard $(PACKAGES_DIR)/*/*.cpp)
+PACKAGE_OBJECTS = $(PACKAGE_SOURCES:%.cpp=$(BUILD_DIR)/%.o)
+
+# Main object
+MAIN_OBJECT = $(BUILD_DIR)/main.o
+
+# All objects
+ALL_OBJECTS = $(MAIN_OBJECT) $(PACKAGE_OBJECTS)
+
+# Main target executable
+TARGET = $(BIN_DIR)/ai_program$(EXE_EXT)
+
+# Example targets
+EXAMPLE_SOURCES = $(wildcard $(EXAMPLES_DIR)/*.cpp) $(wildcard $(EXAMPLES_DIR)/*/*.cpp)
+EXAMPLE_TARGETS = $(patsubst $(EXAMPLES_DIR)/%.cpp,$(BIN_DIR)/%$(EXE_EXT),$(EXAMPLE_SOURCES))
+
+# Default target
+all: directories $(TARGET)
+
+# Build all examples
+examples: directories $(EXAMPLE_TARGETS)
+
+# Create necessary directories
+directories:
+	$(call MKDIR,$(BUILD_DIR))
+	$(call MKDIR,$(BIN_DIR))
+	$(call MKDIR,$(BUILD_DIR)/packages)
+ifeq ($(DETECTED_OS),Windows)
+	@if exist "$(PACKAGES_DIR)" for /d %%i in ($(PACKAGES_DIR)\*) do @$(call MKDIR,$(BUILD_DIR)/packages/%%~nxi)
+else
+	@if [ -d "$(PACKAGES_DIR)" ]; then \
+		for pkg in $(PACKAGES_DIR)/*/; do \
+			if [ -d "$$pkg" ]; then \
+				$(call MKDIR,$(BUILD_DIR)/packages/$$(basename "$$pkg")); \
+			fi; \
+		done; \
+	fi
+endif
+
+# Link object files to create main executable
+$(TARGET): $(ALL_OBJECTS)
+	@$(call MKDIR,$(@D))
+	$(CXX) $(ALL_OBJECTS) -o $@ $(LIBS)
+	@echo "Build completed: $(TARGET)"
+
+# Compile main.cpp
+$(MAIN_OBJECT): $(MAIN_FILE)
+	@$(call MKDIR,$(@D))
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -I$(PACKAGES_DIR) -c $< -o $@
+
+# Compile package source files
+$(BUILD_DIR)/packages/%.o: packages/%.cpp
+	@$(call MKDIR,$(@D))
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -I$(PACKAGES_DIR) -c $< -o $@
+
+# Compile and link example files (supports subdirectories)
+$(BIN_DIR)/%$(EXE_EXT): $(EXAMPLES_DIR)/%.cpp $(PACKAGE_OBJECTS)
+	@$(call MKDIR,$(@D))
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -I$(PACKAGES_DIR) $< $(PACKAGE_OBJECTS) -o $@ $(LIBS)
+
+# Clean build artifacts
+clean:
+	$(call RMDIR,$(BUILD_DIR))
+	$(call RMDIR,$(BIN_DIR))
+	@echo "Cleaned build artifacts"
+
+# Run the program
+run: $(TARGET)
+	@echo "Running AI program..."
+	@$(TARGET)
+
+# Debug build with additional flags
+debug: CXXFLAGS += -DDEBUG -g3
+debug: clean all
+
+# Release build with optimizations
+release: CXXFLAGS += -DNDEBUG -O3
+release: clean all
+
+# Install dependencies (common AI libraries)
+install-deps:
+	@echo "Installing common AI/ML dependencies..."
+	@echo "Note: This assumes you have vcpkg or similar package manager"
+	@echo "Consider installing: eigen3, opencv, boost"
+
+# Format code (requires clang-format)
+format:
+	@echo "Formatting C++ code..."
+	@find $(SRC_DIR) $(INCLUDE_DIR) -name "*.cpp" -o -name "*.hpp" -o -name "*.h" | xargs clang-format -i
+
+# Create project structure
+setup:
+	$(call MKDIR,$(SRC_DIR))
+	$(call MKDIR,$(INCLUDE_DIR))
+	$(call MKDIR,$(PACKAGES_DIR))
+	$(call MKDIR,$(EXAMPLES_DIR))
+	$(call MKDIR,$(BUILD_DIR))
+	$(call MKDIR,$(BIN_DIR))
+	@echo "Project structure created (OS: $(DETECTED_OS))"
+	@echo "Creating main.cpp template..."
+ifeq ($(DETECTED_OS),Windows)
+	@echo #include ^<iostream^> > $(MAIN_FILE)
+	@echo. >> $(MAIN_FILE)
+	@echo int main^(^) { >> $(MAIN_FILE)
+	@echo     std::cout ^<^< "AI Program Started" ^<^< std::endl; >> $(MAIN_FILE)
+	@echo     std::cout ^<^< "Welcome to the C++ AI Practice Repository!" ^<^< std::endl; >> $(MAIN_FILE)
+	@echo     return 0; >> $(MAIN_FILE)
+	@echo } >> $(MAIN_FILE)
+else
+	@echo '#include <iostream>' > $(MAIN_FILE)
+	@echo '' >> $(MAIN_FILE)
+	@echo 'int main() {' >> $(MAIN_FILE)
+	@echo '    std::cout << "AI Program Started" << std::endl;' >> $(MAIN_FILE)
+	@echo '    std::cout << "Welcome to the C++ AI Practice Repository!" << std::endl;' >> $(MAIN_FILE)
+	@echo '    return 0;' >> $(MAIN_FILE)
+	@echo '}' >> $(MAIN_FILE)
+endif
+	@echo "Created main.cpp template"
+
+# Create a new package (cross-platform)
+new-package:
+ifeq ($(n)$(NAME),)
+	@echo "Usage: make new-package NAME=package_name or make new-package n=package_name"
+	@exit 1
+endif
+	$(eval PKG_NAME := $(if $(n),$(n),$(NAME)))
+	$(call MKDIR,$(PACKAGES_DIR)/$(PKG_NAME))
+	@echo "Creating package: $(PKG_NAME)"
+ifeq ($(DETECTED_OS),Windows)
+	@echo #pragma once > $(PACKAGES_DIR)\$(PKG_NAME)\$(PKG_NAME).h
+	@echo. >> $(PACKAGES_DIR)\$(PKG_NAME)\$(PKG_NAME).h
+	@echo namespace $(PKG_NAME) { >> $(PACKAGES_DIR)\$(PKG_NAME)\$(PKG_NAME).h
+	@echo     void hello^(^); >> $(PACKAGES_DIR)\$(PKG_NAME)\$(PKG_NAME).h
+	@echo } >> $(PACKAGES_DIR)\$(PKG_NAME)\$(PKG_NAME).h
+	@echo #include "$(PKG_NAME).h" > $(PACKAGES_DIR)\$(PKG_NAME)\$(PKG_NAME).cpp
+	@echo #include ^<iostream^> >> $(PACKAGES_DIR)\$(PKG_NAME)\$(PKG_NAME).cpp
+	@echo. >> $(PACKAGES_DIR)\$(PKG_NAME)\$(PKG_NAME).cpp
+	@echo void $(PKG_NAME)::hello^(^) { >> $(PACKAGES_DIR)\$(PKG_NAME)\$(PKG_NAME).cpp
+	@echo     std::cout ^<^< "Hello from $(PKG_NAME) package!" ^<^< std::endl; >> $(PACKAGES_DIR)\$(PKG_NAME)\$(PKG_NAME).cpp
+	@echo } >> $(PACKAGES_DIR)\$(PKG_NAME)\$(PKG_NAME).cpp
+else
+	@echo '#pragma once' > $(PACKAGES_DIR)/$(PKG_NAME)/$(PKG_NAME).h
+	@echo '' >> $(PACKAGES_DIR)/$(PKG_NAME)/$(PKG_NAME).h
+	@echo 'namespace $(PKG_NAME) {' >> $(PACKAGES_DIR)/$(PKG_NAME)/$(PKG_NAME).h
+	@echo '    void hello();' >> $(PACKAGES_DIR)/$(PKG_NAME)/$(PKG_NAME).h
+	@echo '}' >> $(PACKAGES_DIR)/$(PKG_NAME)/$(PKG_NAME).h
+	@echo '#include "$(PKG_NAME).h"' > $(PACKAGES_DIR)/$(PKG_NAME)/$(PKG_NAME).cpp
+	@echo '#include <iostream>' >> $(PACKAGES_DIR)/$(PKG_NAME)/$(PKG_NAME).cpp
+	@echo '' >> $(PACKAGES_DIR)/$(PKG_NAME)/$(PKG_NAME).cpp
+	@echo 'void $(PKG_NAME)::hello() {' >> $(PACKAGES_DIR)/$(PKG_NAME)/$(PKG_NAME).cpp
+	@echo '    std::cout << "Hello from $(PKG_NAME) package!" << std::endl;' >> $(PACKAGES_DIR)/$(PKG_NAME)/$(PKG_NAME).cpp
+	@echo '}' >> $(PACKAGES_DIR)/$(PKG_NAME)/$(PKG_NAME).cpp
+endif
+	@echo "Package $(PKG_NAME) created successfully"
+
+# Create a new example (cross-platform)
+new-example:
+ifeq ($(n)$(NAME),)
+	@echo "Usage: make new-example NAME=example_name [PACKAGE=package_name] or make new-example n=example_name [p=package_name]"
+	@exit 1
+endif
+	$(eval EX_NAME := $(strip $(if $(n),$(n),$(NAME))))
+	$(eval EX_PACKAGE := $(strip $(if $(p),$(p),$(PACKAGE))))
+	$(eval EX_PATH := $(if $(EX_PACKAGE),$(EXAMPLES_DIR)/$(EX_PACKAGE)/$(EX_NAME),$(EXAMPLES_DIR)/$(EX_NAME)))
+	$(eval EX_DIR := $(dir $(EX_PATH)))
+	$(call MKDIR,$(EX_DIR))
+	@echo "Creating example: $(if $(EX_PACKAGE),$(EX_PACKAGE)/)$(EX_NAME)"
+ifeq ($(DETECTED_OS),Windows)
+	@echo #include ^<iostream^> > $(subst /,\,$(EX_PATH)).cpp
+	@echo int main^(^) { >> $(subst /,\,$(EX_PATH)).cpp
+	@echo     std::cout ^<^< "Example: $(if $(EX_PACKAGE),$(EX_PACKAGE)/)$(EX_NAME)" ^<^< std::endl; >> $(subst /,\,$(EX_PATH)).cpp
+	@cmd /C "if not '$(EX_PACKAGE)'=='' (echo     // Add your $(EX_PACKAGE) example code here) else (echo     // Add your example code here)" >> $(subst /,\,$(EX_PATH)).cpp
+	@echo     return 0; >> $(subst /,\,$(EX_PATH)).cpp
+	@echo } >> $(subst /,\,$(EX_PATH)).cpp
+else
+	@echo '#include <iostream>' > $(EX_PATH).cpp
+	@echo 'int main() {' >> $(EX_PATH).cpp
+	@echo '    std::cout << "Example: $(if $(EX_PACKAGE),$(EX_PACKAGE)/)$(EX_NAME)" << std::endl;' >> $(EX_PATH).cpp
+	@if [ "$(EX_PACKAGE)" != "" ]; then \
+		echo '    // Add your $(EX_PACKAGE) example code here' >> $(EX_PATH).cpp; \
+	else \
+		echo '    // Add your example code here' >> $(EX_PATH).cpp; \
+	fi
+	@echo '    return 0;' >> $(EX_PATH).cpp
+	@echo '}' >> $(EX_PATH).cpp
+endif
+	@echo "Example $(if $(EX_PACKAGE),$(EX_PACKAGE)/)$(EX_NAME) created successfully"
+
+# Run a specific example (cross-platform)
+run-example:
+ifeq ($(n)$(NAME),)
+	@echo "Usage: make run-example NAME=example_name [PACKAGE=package_name] or make run-example n=example_name [p=package_name]"
+	@exit 1
+endif
+	$(eval EX_NAME := $(if $(n),$(n),$(NAME)))
+	$(eval EX_PACKAGE := $(if $(p),$(p),$(PACKAGE)))
+ifneq ($(EX_PACKAGE),)
+	@$(MAKE) $(BIN_DIR)/$(EX_PACKAGE)/$(EX_NAME)$(EXE_EXT)
+	@echo "Running example: $(EX_PACKAGE)/$(EX_NAME)"
+	@$(BIN_DIR)/$(EX_PACKAGE)/$(EX_NAME)$(EXE_EXT)
+else
+	@$(MAKE) $(BIN_DIR)/$(EX_NAME)$(EXE_EXT)
+	@echo "Running example: $(EX_NAME)"
+	@$(BIN_DIR)/$(EX_NAME)$(EXE_EXT)
+endif
+
+# List all available examples (cross-platform)
+list-examples:
+	@echo "Available examples:"
+ifeq ($(DETECTED_OS),Windows)
+	@if exist "$(EXAMPLES_DIR)" (for /r "$(EXAMPLES_DIR)" %%f in (*.cpp) do @echo   %%~nf ^(%%~pf^))
+	@if not exist "$(EXAMPLES_DIR)" echo "No examples directory found. Run 'make setup' first."
+else
+	@if [ -d "$(EXAMPLES_DIR)" ]; then \
+		find $(EXAMPLES_DIR) -name "*.cpp" -type f | sed 's|$(EXAMPLES_DIR)/||' | sed 's|\.cpp$$||' | while read example; do \
+			echo "  $$example"; \
+		done; \
+	else \
+		echo "No examples directory found. Run 'make setup' first."; \
+	fi
+endif
+
+# Help target
+help:
+	@echo "Cross-platform C++ AI Makefile (Detected OS: $(DETECTED_OS))"
+	@echo "Available targets:"
+	@echo "  all            - Build the main project (default)"
+	@echo "  examples       - Build all examples"
+	@echo "  list-examples  - List all available examples"
+	@echo "  clean          - Remove build artifacts"
+	@echo "  run            - Build and run the main program"
+	@echo "  run-example    - Run specific example"
+	@echo "                   Usage: make run-example NAME=example_name [PACKAGE=package_name]"
+	@echo "                      or: make run-example n=example_name [p=package_name]"
+	@echo "  debug          - Build with debug flags"
+	@echo "  release        - Build with release optimizations"
+	@echo "  setup          - Create project directory structure and main.cpp"
+	@echo "  new-package    - Create new package"
+	@echo "                   Usage: make new-package NAME=package_name"
+	@echo "                      or: make new-package n=package_name"
+	@echo "  new-example    - Create new example"
+	@echo "                   Usage: make new-example NAME=example_name [PACKAGE=package_name]"
+	@echo "                      or: make new-example n=example_name [p=package_name]"
+	@echo "  format         - Format code with clang-format"
+	@echo "  help           - Show this help message"
+
+# Phony targets
+.PHONY: all clean run debug release install-deps format setup help directories examples new-package new-example run-example list-examples
