@@ -284,61 +284,6 @@ make run-example n=comparison_demo  # short form
 make list-examples
 ```
 
-## Common AI Packages to Implement
-
-Here are some AI package ideas with suggested examples:
-
-### **Linear Algebra**: 
-```bash
-make new-package n=linear_algebra
-make new-example n=matrix_operations p=linear_algebra
-make new-example n=vector_math p=linear_algebra
-```
-
-### **Neural Networks**: 
-```bash
-make new-package n=neural_network
-make new-example n=perceptron_demo p=neural_network
-make new-example n=xor_problem p=neural_network
-make new-example n=mnist_classifier p=neural_network
-```
-
-### **Decision Trees**: 
-```bash
-make new-package n=decision_tree
-make new-example n=iris_classification p=decision_tree
-make new-example n=loan_approval p=decision_tree
-```
-
-### **Genetic Algorithms**: 
-```bash
-make new-package n=genetic_algorithm
-make new-example n=optimization_demo p=genetic_algorithm
-make new-example n=traveling_salesman p=genetic_algorithm
-```
-
-### **K-Means Clustering**: 
-```bash
-make new-package n=kmeans
-make new-example n=customer_segmentation p=kmeans
-make new-example n=color_clustering p=kmeans
-```
-
-### **Linear Regression**: 
-```bash
-make new-package n=linear_regression
-make new-example n=simple_regression p=linear_regression
-make new-example n=house_price_prediction p=linear_regression
-make new-example n=polynomial_fit p=linear_regression
-```
-
-### **Support Vector Machine**: 
-```bash
-make new-package n=svm
-make new-example n=binary_classification p=svm
-make new-example n=multiclass_demo p=svm
-```
-
 ## Example Workflow
 
 1. **Set up the project**:
@@ -383,13 +328,6 @@ For each package, create multiple examples showing different use cases:
 make new-example n=simple_regression p=linear_regression
 make new-example n=house_price_prediction p=linear_regression  
 make new-example n=polynomial_fit p=linear_regression
-```
-
-**Neural Network Package:**
-```bash
-make new-example n=perceptron_demo p=neural_network
-make new-example n=xor_problem p=neural_network
-make new-example n=mnist_classifier p=neural_network
 ```
 
 **General Examples:**
