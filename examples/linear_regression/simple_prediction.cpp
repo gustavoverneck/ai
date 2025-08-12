@@ -1,9 +1,12 @@
 #include "linear_regression.h"
 #include <iostream>
+#include <Eigen/Dense>
 
 int main() {
-    std::vector<double> x = {1, 2, 3, 4, 5};
-    std::vector<double> y = {2, 4, 6, 8, 10};
+    Eigen::VectorXd x(5);
+    x << 1, 2, 3, 4, 5;
+    Eigen::VectorXd y(5);
+    y << 2, 4, 6, 8, 10;
 
     ai::LinearRegression model;
     model.fit(x, y);

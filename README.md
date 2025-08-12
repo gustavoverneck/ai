@@ -438,6 +438,7 @@ Project structure created (OS: macOS)
 4. Document your algorithms in the package headers
 5. Test your implementations with examples
 
+
 ## Dependencies
 
 Common AI libraries you might want to add:
@@ -446,6 +447,12 @@ Common AI libraries you might want to add:
 - **Boost**: General utilities
 
 Install using your package manager (vcpkg, conan, etc.)
+
+---
+
+## 📚 Third-party Notice: Eigen
+
+Este projeto utiliza a biblioteca [Eigen](https://eigen.tuxfamily.org), licenciada sob MPL 2.0.
 
 ## License
 

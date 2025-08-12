@@ -1,7 +1,6 @@
 #pragma once 
 
-#include <vector>
-#include <utility>
+#include <Eigen/Dense>
 #include "losses/mse.h"
 #include "metrics/r2_score.h"
 
@@ -17,26 +16,18 @@ public:
      * Equation:
      *   y = a * x + b
      */
-    void fit(const std::vector<double>& x, const std::vector<double>& y) {
-        if (x.size() != y.size() || x.empty())
+    void fit(const Eigen::VectorXd& x, const Eigen::VectorXd& y) {
+        if (x.size() != y.size() || x.size() == 0)
             throw std::invalid_argument("x and y must have the same non-zero length");
 
-        const size_t n = x.size();
-        double sum_x = 0.0, sum_y = 0.0, sum_xy = 0.0, sum_x2 = 0.0;
-
-        for (size_t i = 0; i < n; ++i) {
-            sum_x += x[i];
-            sum_y += y[i];
-            sum_xy += x[i] * y[i];
-            sum_x2 += x[i] * x[i];
-        }
-
-        double denominator = n * sum_x2 - sum_x * sum_x;
-        if (denominator == 0.0)
-            throw std::runtime_error("Cannot fit line: denominator is zero");
-
-        a_ = (n * sum_xy - sum_x * sum_y) / denominator;
-        b_ = (sum_y * sum_x2 - sum_x * sum_xy) / denominator;
+        // Design matrix: [x 1]
+        Eigen::MatrixXd A(x.size(), 2);
+        A.col(0) = x;
+        A.col(1) = Eigen::VectorXd::Ones(x.size());
+        // Solve for [a, b] in least squares sense
+        Eigen::Vector2d coeffs = A.colPivHouseholderQr().solve(y);
+        a_ = coeffs(0);
+        b_ = coeffs(1);
         fitted_ = true;
     }
 
@@ -51,13 +42,10 @@ public:
     /**
      * @brief Predicts y values from a vector of x values.
      */
-    std::vector<double> predict(const std::vector<double>& x_vals) const {
+    Eigen::VectorXd predict(const Eigen::VectorXd& x_vals) const {
         check_fitted();
-        std::vector<double> result;
-        result.reserve(x_vals.size());
-        for (double x : x_vals)
-            result.push_back(predict(x));
-        return result;
+        if (x_vals.size() == 0) return Eigen::VectorXd();
+        return a_ * x_vals.array() + b_;
     }
 
     /**
@@ -74,24 +62,15 @@ public:
      * @brief Returns the slope (a) of the fitted line.
      */
     double get_slope() const { check_fitted(); return a_; }
-    
-    /**
-     * @brief Predicts y values for each x in the input vector using the fitted model.
-     */
+
     double get_intercept() const { check_fitted(); return b_; }
 
-    /**
-     * @brief Predicts y values for each x in the input vector using the fitted model.
-     */
-    double score(const std::vector<double>& x, const std::vector<double>& y) const {
+    double score(const Eigen::VectorXd& x, const Eigen::VectorXd& y) const {
         auto y_pred = predict(x);
         return ai::metrics::r2_score(y, y_pred);
     }
 
-    /**
-     * @brief Calculates the mean squared error (MSE) loss between the predicted and actual values.
-     */
-    double loss(const std::vector<double>& x, const std::vector<double>& y) const {
+    double loss(const Eigen::VectorXd& x, const Eigen::VectorXd& y) const {
         auto y_pred = predict(x);
         return ai::losses::mse(y, y_pred);
     }

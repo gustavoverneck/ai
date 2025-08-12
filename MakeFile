@@ -24,9 +24,10 @@ else
 endif
 
 # Compiler and flags
+CXX = g++
 PACKAGES_DIR := packages
 PACKAGE_INCLUDE_DIRS := $(wildcard $(PACKAGES_DIR)/*)
-INCLUDES = -Iinclude -Ipackages $(foreach dir,$(PACKAGE_INCLUDE_DIRS),$(if $(wildcard $(dir)/*.h),-I$(subst \\,/,$(dir)),))
+INCLUDES = -Iinclude -Iinclude/eigen-3.4.0 -Ipackages $(foreach dir,$(PACKAGE_INCLUDE_DIRS),$(if $(wildcard $(dir)/*.h),-I$(subst \\,/,$(dir)),))
 CXX = g++
 LIBS = -lm
 
