@@ -1,6 +1,6 @@
 {
     "files.associations": {
         "stdexcept": "cpp",
-        "vector": "cpp"
+        "dense": "cpp"
     }
 }

@@ -8,7 +8,7 @@ int main() {
     Eigen::VectorXd y(5);
     y << 2, 4, 6, 8, 10;
 
-    ai::LinearRegression model;
+    ai::regression::LinearRegression model;
     model.fit(x, y);
 
     std::cout << "a (slope): " << model.get_slope() << "\n";
