@@ -376,15 +376,13 @@ Project structure created (OS: macOS)
 4. Document your algorithms in the package headers
 5. Test your implementations with examples
 
+## Eigen Dependency
 
-## Dependencies
+Para utilizar os algoritmos deste repositório, é necessário baixar a biblioteca Eigen 3.4.0.
 
-Common AI libraries you might want to add:
-- **Eigen3**: Linear algebra library
-- **OpenCV**: Computer vision
-- **Boost**: General utilities
+Baixe o arquivo em: https://gitlab.com/libeigen/eigen/-/releases/3.4.0
 
-Install using your package manager (vcpkg, conan, etc.)
+Extraia o conteúdo e coloque a pasta `Eigen` dentro de `include/eigen-3.4.0/`.
 
 ---
 
